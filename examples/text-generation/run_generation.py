@@ -21,6 +21,7 @@ Conditional text generation on Habana Gaudi/Gaudi2.
 import argparse
 import json
 import logging
+logging.basicConfig(level=logging.INFO)
 import math
 import os
 import time

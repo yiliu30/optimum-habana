@@ -42,6 +42,8 @@ except ImportError:
     has_fused_rope = False
     print("Not using HPU fused kernel for apply_rotary_pos_emb")
 
+# has_fused_rope = False
+
 try:
     from habana_frameworks.torch.hpex.normalization import FusedRMSNorm as FusedRMSNorm
 
@@ -595,7 +597,7 @@ class GaudiLlamaAttention(LlamaAttention):
                 device=query_states.device,
             )
             position_ids = position_ids.unsqueeze(0)
-
+        htcore.mark_step()
         query_states, key_states = apply_customized_rope(query_states, key_states, cos, sin, position_ids)
 
         if use_cache:
@@ -1520,7 +1522,7 @@ class GaudiLlamaForCausalLM(LlamaForCausalLM):
         return reordered_past
 
 
-def apply_customized_rope(q, k, cos, sin, position_ids, training=True):
+def apply_customized_rope(q, k, cos, sin, position_ids, training=False):
     if q.device.type == "hpu" and has_fused_rope:
         return apply_customized_rope_module(q, k, cos, sin, position_ids, training)
     else:

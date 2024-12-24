@@ -262,6 +262,13 @@ def setup_model(args, model_dtype, model_kwargs, logger):
         from neural_compressor.torch.quantization import load
 
         model = load(model_name_or_path=args.model_name_or_path, format="huggingface", device="hpu", **model_kwargs)
+        from neural_compressor.torch.algorithms.mixed_low_precision.modules import (
+            replace_all_hpu_woq_with_hpu_mixed_precision_linear_v2_,
+        )
+
+        replace_all_hpu_woq_with_hpu_mixed_precision_linear_v2_(model)
+
+        
     elif args.local_quantized_inc_model_path:
         org_model = AutoModelForCausalLM.from_pretrained(
             args.model_name_or_path,
@@ -272,7 +279,7 @@ def setup_model(args, model_dtype, model_kwargs, logger):
 
         model = load(
             model_name_or_path=args.local_quantized_inc_model_path,
-            format="default",
+            format="huggingface",
             device="hpu",
             original_model=org_model,
             **model_kwargs,
@@ -280,6 +287,12 @@ def setup_model(args, model_dtype, model_kwargs, logger):
         # TODO: This will be removed in v1.19 Synapse release
         # the loaded model should have the same dtype as original_model
         model = model.to(model_kwargs["torch_dtype"])
+        from neural_compressor.torch.algorithms.mixed_low_precision.modules import (
+            replace_all_hpu_woq_with_hpu_mixed_precision_linear_v2_,
+        )
+
+        replace_all_hpu_woq_with_hpu_mixed_precision_linear_v2_(model)
+        print(f"loaded model {model}")
     else:
         if args.assistant_model is not None:
             assistant_model = AutoModelForCausalLM.from_pretrained(
